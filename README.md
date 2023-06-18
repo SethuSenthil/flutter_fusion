@@ -1,7 +1,7 @@
 # Flutter Fusion
 ### The ultimate Flutter build tool
 
-👷 This is still a work in progress, I have yet to build a compiled version. Use at your own risk atm.
+👷 This is still a work in progress.
 
 ## Idea
 Idk about y'all but I'm tired of manually uploading my builds to App Store Connect and the Play Store. It would be amazing if there is something simple that lets me compile the app on my own computer, manage the versioning, and automatically compile and upload my Flutter app to where ever it needs to be and push to version control. This is where Flutter Fusion comes in!

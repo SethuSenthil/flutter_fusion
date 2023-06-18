@@ -343,6 +343,13 @@ if(config.git){
     });
     await gitAdd.output();
 
+    const commitMessage = await Deno.readTextFile(commitMessagePath);
+
+    const gitCommit = new Deno.Command("git", {
+        args: ["commit", "-m",`"${config.increment_version}"`, "-m", `"${commitMessage}"`],
+    });
+    await gitCommit.output();
+
     const gitPush = new Deno.Command("git", {
         args: ["push", "origin", "main"], //check if main or master is used as default
     });
@@ -357,5 +364,4 @@ if(config.git){
         console.log("%c✅ Pushed the changes to the git remote", successStyle);
     }
 }
-
 //https://keith.github.io/xcode-man-pages/altool.1.html

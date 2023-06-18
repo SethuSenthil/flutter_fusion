@@ -1,0 +1,1 @@
+deno run --allow-read --allow-env --allow-run --allow-write --allow-sys main.ts
