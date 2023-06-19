@@ -1,6 +1,8 @@
 # Flutter Fusion
 ### The ultimate Flutter build tool
 
+<img src="media/logo.png" height=auto width=auto/>
+
 👷 This is still a work in progress. Only building for iOS is support at the moment.
 
 ## 💡 Idea
