@@ -1,17 +1,73 @@
+//deno run --allow-read --allow-env --allow-run --allow-write --allow-sys --allow-net main.ts
+
+//main file where everything actually happens (TODO: need to split this up into multiple files)
+
 import * as path from "https://deno.land/std@0.177.0/path/mod.ts";
 import Spinner from "https://deno.land/x/cli_spinners@v0.0.2/mod.ts";
 import * as mod from "https://deno.land/std@0.192.0/flags/mod.ts";
 import { parse } from "npm:yaml@2.3.1";
 import { exists } from "https://deno.land/std@0.192.0/fs/mod.ts";
+import * as semver from "https://deno.land/std@0.192.0/semver/mod.ts";
+
+const _VERSION = "0.0.1";
 
 const startTime: Date = new Date();
+
+//check for new version
+try {
+  const latestVersionData = await fetch(
+    "https://flutter-fusion.sethusenthil.com/version.json"
+  );
+
+  const latestVersionJson = await latestVersionData.json();
+
+  const latestVersion: string = (latestVersionJson.version =
+    latestVersionJson.version.toString());
+
+  const versionCompare = semver.compare(latestVersion, _VERSION);
+
+  if (versionCompare === 1) {
+    console.log(
+      `%c🎉 A new version of Flutter Fusion is available! (${_VERSION} --> ${latestVersion}) Please update to the latest version to get the best experience.`,
+      "color: yellow"
+    );
+
+    const shouldUpgrade = confirm("Do you want to upgrade?");
+
+    if (shouldUpgrade) {
+      const upgrade = new Deno.Command("deno", {
+        args: [
+          "install",
+          "-n",
+          `flutter-fusion`,
+          "--allow-read",
+          `--allow-env"`,
+          "--allow-run",
+          "--allow-write",
+          "--allow-sys",
+          "--allow-net",
+          "https://flutter-fusion.sethusenthil.com/main.ts",
+        ],
+      });
+      const { code, stdout, stderr } = await upgrade.output();
+      if (code === 0) {
+        console.log("🎉 Upgraded to latest version!");
+      }
+    }
+  }
+} catch (e) {
+  console.log("%cError checking for new version", "color: red");
+  //console.log(e);
+}
+
+//VALIDATION AND CONFIG DECLARATION LOGIC
 
 // Getting the current working directory path
 const __dirname: string = Deno.cwd();
 
 const pubspecPath: string = path.join(__dirname, "pubspec.yaml");
 
-if (!await exists(pubspecPath)) {
+if (!(await exists(pubspecPath))) {
   throw new Error(
     "pubspec.yaml not found! Please make sure you are running this command in the root directory of your Flutter project."
   );
@@ -30,7 +86,7 @@ const privateKeysPath: string = path.join(
 
 const globalPubspecPath: string = path.join(privateKeysPath, "pubspec.yaml");
 
-if (!await exists(globalPubspecPath)) {
+if (!(await exists(globalPubspecPath))) {
   console.log(
     "%It is recommend to create a global pubspec.yaml file in your home directory inside private_keys.",
     "color: yellow"
@@ -73,11 +129,11 @@ const config = {
   android: pubspec.flutter_fusion.android ?? false,
   web: pubspec.flutter_fusion.web ?? false,
   auto_increment_build:
-    args['increment-build'] ??
+    args["increment-build"] ??
     pubspec.flutter_fusion.auto_increment_build ??
     globalPubSpec.flutter_fusion.auto_increment_build ??
     false,
-  increment_version: args['increment-version'] ?? false,
+  increment_version: args["increment-version"] ?? false,
   git: args.git ?? pubspec.flutter_fusion.git ?? false,
 };
 
@@ -85,32 +141,42 @@ if (config.verbose) {
   console.log("🔬 Verbose mode enabled");
 }
 
-const commitMessagePath: string = path.join(__dirname, "COMMIT_EDITMSG")
+const commitMessagePath: string = path.join(__dirname, "COMMIT_EDITMSG");
 
-if(config.git){
-    // console.log("📝 Git enabled");
-    if (!await exists(path.join(__dirname, ".git"), { isDirectory: true })) {
-        throw new Error(
-            "Git repository not found! Please make sure you are running this command in the root directory of your Flutter project. Or disable git in pubspec.yaml or the --git=false flag."
+if (config.git) {
+  // console.log("📝 Git enabled");
+  if (!(await exists(path.join(__dirname, ".git"), { isDirectory: true }))) {
+    throw new Error(
+      "Git repository not found! Please make sure you are running this command in the root directory of your Flutter project. Or disable git in pubspec.yaml or the --git=false flag."
+    );
+  } else {
+    //check for COMMIT_EDITMSG file
+    if (
+      !(await exists(commitMessagePath, { isFile: true, isReadable: true }))
+    ) {
+      //create file
+      await Deno.writeTextFile(commitMessagePath, "COMMIT DESCRIPTION HERE");
+
+      //warn
+      console.log(
+        "%c⚠️ Git commit message not found. Created a default one. You can edit still it at COMMIT_EDITMSG while the app is building. 🥂",
+        "color: yellow"
+      );
+    } else {
+      let commitMessage: string = await Deno.readTextFile(commitMessagePath);
+      commitMessage = commitMessage.trim();
+
+      if (commitMessage === "COMMIT DESCRIPTION HERE" || commitMessage === "") {
+        console.log(
+          "%c⚠️ Default commit message found. You can edit still it at COMMIT_EDITMSG while the app is building. 🥂",
+          "color: yellow"
         );
-    }else{
-        //check for COMMIT_EDITMSG file
-        if (!await exists(commitMessagePath,{isFile: true, isReadable: true})) {
-            //create file
-            await Deno.writeTextFile(commitMessagePath, "COMMIT DESCRIPTION HERE");
-
-            //warn
-            console.log("%c⚠️ Git commit message not found. Created a default one. You can edit still it at COMMIT_EDITMSG while the app is building. 🥂", "color: yellow");
-        }else{
-           let commitMessage : string = await Deno.readTextFile(commitMessagePath);
-           commitMessage = commitMessage.trim();
-
-           if(commitMessage === "COMMIT DESCRIPTION HERE" || commitMessage === ""){
-                console.log("%c⚠️ Default commit message found. You can edit still it at COMMIT_EDITMSG while the app is building. 🥂", "color: yellow");
-           }
-        }
+      }
     }
+  }
 }
+
+//AUTO VERSION INCREMENT LOGIC
 
 const currentBuildYamlEntry: string = "version: " + pubspec.version;
 
@@ -167,7 +233,10 @@ if (config.auto_increment_build && !config.increment_version) {
 
 const successStyle = "color: green";
 
+//IOS BUILD LOGIC
+
 if (config.ios) {
+  //IOS VALIDATION LOGIC
   console.log("%c Starting iOS Build Process...", "color: blue");
 
   if (config.APP_STORE_CONNECT_API_KEY_ID == undefined) {
@@ -321,12 +390,16 @@ if (config.ios) {
   }
 }
 
+//ANDROID BUILD LOGIC
+
 if (config.android) {
   console.log(
     "Android build is not supported yet. Please check back later.",
     "color: red"
   );
 }
+
+//WEB BUILD LOGIC
 
 if (config.web) {
   console.log(
@@ -335,33 +408,59 @@ if (config.web) {
   );
 }
 
-if(config.git){
-    console.log("%c📝 Pushing the changes to the git remote...", "color: blue");
+//GIT COMMIT LOGIC
 
-    const gitAdd = new Deno.Command("git", {
-        args: ["add", "--all"],
-    });
-    await gitAdd.output();
+if (config.git) {
+  console.log("%cGIT: Staging Changes...", "color: blue");
 
+  const gitAdd = new Deno.Command("git", {
+    args: ["add", "--all"],
+  });
+  const { code, stdout, stderr } = await gitAdd.output();
+
+  if (config.verbose) {
+    console.log(new TextDecoder().decode(stdout));
+    console.log(new TextDecoder().decode(stderr));
+  }
+
+  if (code === 0) {
     const commitMessage = await Deno.readTextFile(commitMessagePath);
 
-    const gitCommit = new Deno.Command("git", {
-        args: ["commit", "-m",`"${config.increment_version}"`, "-m", `"${commitMessage}"`],
-    });
-    await gitCommit.output();
+    console.log("%cGIT: Committing Changes...", "color: blue");
 
-    const gitPush = new Deno.Command("git", {
-        args: ["push", "origin", "main"], //check if main or master is used as default
+    const gitCommit = new Deno.Command("git", {
+      args: [
+        "commit",
+        "-m",
+        `"${config.increment_version}"`,
+        "-m",
+        `"${commitMessage}"`,
+      ],
     });
-    const { code, stdout, stderr } = await gitPush.output();
+    const { code, stdout, stderr } = await gitCommit.output();
 
     if (config.verbose) {
-        console.log(new TextDecoder().decode(stdout));
-        console.log(new TextDecoder().decode(stderr));
+      console.log(new TextDecoder().decode(stdout));
+      console.log(new TextDecoder().decode(stderr));
     }
 
     if (code === 0) {
+      console.log("%cGIT: Pushing Changes to Remote...", "color: blue");
+
+      const gitPush = new Deno.Command("git", {
+        args: ["push", "origin", "main"], //check if main or master is used as default
+      });
+      const { code, stdout, stderr } = await gitPush.output();
+
+      if (config.verbose) {
+        console.log(new TextDecoder().decode(stdout));
+        console.log(new TextDecoder().decode(stderr));
+      }
+
+      if (code === 0) {
         console.log("%c✅ Pushed the changes to the git remote", successStyle);
+      }
     }
+  }
 }
 //https://keith.github.io/xcode-man-pages/altool.1.html
