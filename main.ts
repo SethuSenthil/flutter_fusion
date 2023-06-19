@@ -193,7 +193,7 @@ if (config.increment_version) {
 
   pubspecData = pubspecData.replace(
     currentBuildYamlEntry,
-    "version: " + newVersionNumber
+    "version: " + newVersionNumber + "+0"
   );
 
   await Deno.writeTextFile(pubspecPath, pubspecData);
@@ -373,7 +373,7 @@ if (config.ios) {
         const build = pubspec.version.split("+")[1];
 
         console.log(
-          `%c🕓 Finished  iOS binary version %c${version}%c build %c${build}%c in ${minutesDiff} minutes`,
+          `%c🕓 Finished  iOS in version %c${version}%c build %c${build}%c in ${minutesDiff} minutes`,
           "",
           "color: blue",
           "",

@@ -14,6 +14,11 @@ Instead of running flutter build simply run this instead abstracted command in t
 ```bash
 flutter-fusion
 ```
+Here is an example of how the output will look!
+<br />
+<img src="media/example.png" height=auto width=auto/>
+<br />
+This screenshot is a bit outdated, some verbiage has been improved
 
 Optional flags:
 - `--git=true|false`: This overrides the default setting in your pubspec to enable or disable committing and pushing to git.
