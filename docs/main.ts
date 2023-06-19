@@ -1,3 +1,7 @@
+//deno run --allow-read --allow-env --allow-run --allow-write --allow-sys --allow-net main.ts
+
+//main file where everything actually happens (TODO: need to split this up into multiple files)
+
 import * as path from "https://deno.land/std@0.177.0/path/mod.ts";
 import Spinner from "https://deno.land/x/cli_spinners@v0.0.2/mod.ts";
 import * as mod from "https://deno.land/std@0.192.0/flags/mod.ts";
@@ -43,6 +47,7 @@ try {
           "--allow-sys",
           "--allow-net",
           "https://flutter-fusion.sethusenthil.com/main.ts",
+          "-f",
         ],
       });
       const { code, stdout, stderr } = await upgrade.output();
@@ -55,6 +60,8 @@ try {
   console.log("%cError checking for new version", "color: red");
   //console.log(e);
 }
+
+//VALIDATION AND CONFIG DECLARATION LOGIC
 
 // Getting the current working directory path
 const __dirname: string = Deno.cwd();
@@ -170,6 +177,8 @@ if (config.git) {
   }
 }
 
+//AUTO VERSION INCREMENT LOGIC
+
 const currentBuildYamlEntry: string = "version: " + pubspec.version;
 
 if (config.increment_version) {
@@ -225,7 +234,10 @@ if (config.auto_increment_build && !config.increment_version) {
 
 const successStyle = "color: green";
 
+//IOS BUILD LOGIC
+
 if (config.ios) {
+  //IOS VALIDATION LOGIC
   console.log("%c Starting iOS Build Process...", "color: blue");
 
   if (config.APP_STORE_CONNECT_API_KEY_ID == undefined) {
@@ -379,6 +391,8 @@ if (config.ios) {
   }
 }
 
+//ANDROID BUILD LOGIC
+
 if (config.android) {
   console.log(
     "Android build is not supported yet. Please check back later.",
@@ -386,12 +400,16 @@ if (config.android) {
   );
 }
 
+//WEB BUILD LOGIC
+
 if (config.web) {
   console.log(
     "Web build is not supported yet. Please check back later.",
     "color: red"
   );
 }
+
+//GIT COMMIT LOGIC
 
 if (config.git) {
   console.log("%cGIT: Staging Changes...", "color: blue");

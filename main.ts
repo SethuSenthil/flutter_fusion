@@ -47,6 +47,7 @@ try {
           "--allow-sys",
           "--allow-net",
           "https://flutter-fusion.sethusenthil.com/main.ts",
+          "-f",
         ],
       });
       const { code, stdout, stderr } = await upgrade.output();

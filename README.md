@@ -28,7 +28,7 @@ This command alone will automatically build your iOS (Android & Web coming soon)
   - If you are unsure, you can run `deno --version` , if it gives an error when running this command, then you do not have Deno installed
 - Install flutter-fusion
 ```bash
-deno install -n flutter-fusion --allow-read --allow-env --allow-run --allow-write --allow-sys --allow-net https://flutter-fusion.sethusenthil.com/main.ts
+deno install -n flutter-fusion --allow-read --allow-env --allow-run --allow-write --allow-sys --allow-net https://flutter-fusion.sethusenthil.com/main.ts -f
 ```
 `
 ### iOS and MacOS
