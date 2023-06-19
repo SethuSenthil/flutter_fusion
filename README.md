@@ -16,9 +16,9 @@ flutter-fusion
 ```
 
 Optional flags:
-- `-git=true|false`: This overrides the default setting in your pubspec to enable or disable committing and pushing to git.
-- `-auto_increment_build=true|false`: This overrides the default setting in your pubspec to automatically increment your build number (ex: from 1.0.0+1 --> 1.0.0+2).
-- `-auto_increment_version=true|false`: Increment a whole minor version (ex: from 1.0.0+3 --> 1.0.1+0).
+- `--git=true|false`: This overrides the default setting in your pubspec to enable or disable committing and pushing to git.
+- `--increment-build=true|false`: This overrides the default setting in your pubspec to automatically increment your build number (ex: from 1.0.0+1 --> 1.0.0+2).
+- `--increment-version=true`: Increment a whole minor version (ex: from 1.0.0+3 --> 1.0.1+0).
 
 This command alone will automatically build your iOS (Android & Web coming soon) app a proper versioning increment, validate the archives, upload the archives, then auto commit your changes to source control.
 

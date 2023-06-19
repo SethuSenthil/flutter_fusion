@@ -112,7 +112,7 @@ const getTimeDifference = (startTime: Date, endTime: Date): string => {
 
 const args = mod.parse(Deno.args);
 
-console.log(args);
+//console.log('args', args);
 
 const config = {
   verbose:
