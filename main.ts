@@ -8,6 +8,7 @@ import * as mod from "https://deno.land/std@0.192.0/flags/mod.ts";
 import { parse } from "npm:yaml@2.3.1";
 import { exists } from "https://deno.land/std@0.192.0/fs/mod.ts";
 import * as semver from "https://deno.land/std@0.192.0/semver/mod.ts";
+import os from "https://deno.land/x/dos@v0.11.0/mod.ts";
 
 const _VERSION = "0.0.1";
 
@@ -60,6 +61,30 @@ try {
   console.log("%cError checking for new version", "color: red");
   //console.log(e);
 }
+
+const sendNotification = async (message: string, title: string) => {
+  try {
+    if (os.platform() === "darwin") {
+      //AKA MacOS
+
+      const sendNotificationMac = new Deno.Command("git", {
+        args: [
+          "osascript",
+          "-e",
+          `'display notification "${message}" with title "${title}'`,
+        ],
+      });
+      const { code, stdout, stderr } = await sendNotificationMac.output();
+
+      if (config.verbose) {
+        console.log(new TextDecoder().decode(stdout));
+      }
+      console.log(new TextDecoder().decode(stderr));
+    }
+  } catch {
+    console.log("Error sending notification");
+  }
+};
 
 //VALIDATION AND CONFIG DECLARATION LOGIC
 
@@ -352,8 +377,9 @@ if (config.ios) {
 
       if (config.verbose) {
         console.log(new TextDecoder().decode(stdout));
-        console.log(new TextDecoder().decode(stderr));
       }
+
+      console.log(new TextDecoder().decode(stderr));
 
       // Logging the success of the upload process
       if (code === 0) {
@@ -421,8 +447,9 @@ if (config.git) {
 
   if (config.verbose) {
     console.log(new TextDecoder().decode(stdout));
-    console.log(new TextDecoder().decode(stderr));
   }
+
+  console.log(new TextDecoder().decode(stderr));
 
   if (code === 0) {
     const commitMessage = await Deno.readTextFile(commitMessagePath);
@@ -442,8 +469,9 @@ if (config.git) {
 
     if (config.verbose) {
       console.log(new TextDecoder().decode(stdout));
-      console.log(new TextDecoder().decode(stderr));
     }
+
+    console.log(new TextDecoder().decode(stderr));
 
     if (code === 0) {
       console.log("%cGIT: Pushing Changes to Remote...", "color: blue");
@@ -455,11 +483,13 @@ if (config.git) {
 
       if (config.verbose) {
         console.log(new TextDecoder().decode(stdout));
-        console.log(new TextDecoder().decode(stderr));
       }
+
+      console.log(new TextDecoder().decode(stderr));
 
       if (code === 0) {
         console.log("%c✅ Pushed the changes to the git remote", successStyle);
+        sendNotification("Flutter Fusion", "Completed Successfully!");
       }
     }
   }
