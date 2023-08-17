@@ -1,5 +1,7 @@
 //deno run --allow-read --allow-env --allow-run --allow-write --allow-sys --allow-net main.ts
 
+//deno install -n flutter-fusion --allow-read --allow-env --allow-run --allow-write --allow-sys --allow-net main.ts -f
+
 //main file where everything actually happens (TODO: need to split this up into multiple files)
 
 import * as path from "https://deno.land/std@0.177.0/path/mod.ts";
@@ -8,8 +10,9 @@ import * as mod from "https://deno.land/std@0.192.0/flags/mod.ts";
 import { parse } from "npm:yaml@2.3.1";
 import { exists } from "https://deno.land/std@0.192.0/fs/mod.ts";
 import * as semver from "https://deno.land/std@0.192.0/semver/mod.ts";
+import os from "https://deno.land/x/dos@v0.11.0/mod.ts";
 
-const _VERSION = "0.0.1";
+const _VERSION = "0.0.2";
 
 const startTime: Date = new Date();
 
@@ -61,10 +64,66 @@ try {
   //console.log(e);
 }
 
+const sendNotification = async (message: string, title: string) => {
+  try {
+    if (os.platform() === "darwin") {
+      //AKA MacOS
+      const sendNotificationMac = new Deno.Command("osascript", {
+        args: [
+          "-e",
+          `'display notification "${message}" with title "${title}'`,
+        ],
+      });
+      const { code, stdout, stderr } = await sendNotificationMac.output();
+
+      if (config.verbose) {
+        console.log(new TextDecoder().decode(stdout));
+      }
+      console.log(new TextDecoder().decode(stderr));
+    }
+  } catch {
+    console.log("Error sending notification");
+  }
+};
+
 //VALIDATION AND CONFIG DECLARATION LOGIC
 
 // Getting the current working directory path
-const __dirname: string = Deno.cwd();
+let __dirname: string = Deno.cwd();
+
+//get current folder name
+const currentFolderName: string = path.basename(__dirname);
+
+const handleSubFolders = (subFolderName: string): boolean => {
+  //if the current folder is a popular flutter sub directory, then go to parent project folder
+  if (currentFolderName === subFolderName) {
+    //if the current folder is ios, then go to parent project folder
+    console.log(
+      `📁 Detected ${subFolderName} folder. Going to parent Flutter project folder...`
+    );
+    __dirname = __dirname.replace(path.join(`/${subFolderName}`), "");
+    return true;
+  }
+
+  return false;
+};
+
+const popularSubFolders: string[] = [
+  "ios",
+  "android",
+  "web",
+  "lib",
+  "test",
+  "windows",
+  "linux",
+  "assets",
+  "fonts",
+];
+
+for (let i = 0; i < popularSubFolders.length; i++) {
+  const testSubFolder: boolean = handleSubFolders(popularSubFolders[i]);
+  if (testSubFolder) break; //break out of loop if a sub folder is found and handled
+}
 
 const pubspecPath: string = path.join(__dirname, "pubspec.yaml");
 
@@ -156,7 +215,10 @@ if (config.git) {
       !(await exists(commitMessagePath, { isFile: true, isReadable: true }))
     ) {
       //create file
-      await Deno.writeTextFile(commitMessagePath, "COMMIT DESCRIPTION HERE");
+      await Deno.writeTextFile(
+        commitMessagePath,
+        "{VERSION} \n COMMIT DESCRIPTION HERE"
+      );
 
       //warn
       console.log(
@@ -167,7 +229,10 @@ if (config.git) {
       let commitMessage: string = await Deno.readTextFile(commitMessagePath);
       commitMessage = commitMessage.trim();
 
-      if (commitMessage === "COMMIT DESCRIPTION HERE" || commitMessage === "") {
+      if (
+        commitMessage === "{VERSION} \n COMMIT DESCRIPTION HERE".trim() ||
+        commitMessage === ""
+      ) {
         console.log(
           "%c⚠️ Default commit message found. You can edit still it at COMMIT_EDITMSG while the app is building. 🥂",
           "color: yellow"
@@ -193,7 +258,7 @@ if (config.increment_version) {
 
   pubspecData = pubspecData.replace(
     currentBuildYamlEntry,
-    "version: " + newVersionNumber
+    "version: " + newVersionNumber + "+0"
   );
 
   await Deno.writeTextFile(pubspecPath, pubspecData);
@@ -352,8 +417,9 @@ if (config.ios) {
 
       if (config.verbose) {
         console.log(new TextDecoder().decode(stdout));
-        console.log(new TextDecoder().decode(stderr));
       }
+
+      console.log(new TextDecoder().decode(stderr));
 
       // Logging the success of the upload process
       if (code === 0) {
@@ -373,7 +439,7 @@ if (config.ios) {
         const build = pubspec.version.split("+")[1];
 
         console.log(
-          `%c🕓 Finished  iOS binary version %c${version}%c build %c${build}%c in ${minutesDiff} minutes`,
+          `%c🕓 Finished  iOS in version %c${version}%c build %c${build}%c in ${minutesDiff} minutes`,
           "",
           "color: blue",
           "",
@@ -421,11 +487,28 @@ if (config.git) {
 
   if (config.verbose) {
     console.log(new TextDecoder().decode(stdout));
-    console.log(new TextDecoder().decode(stderr));
   }
 
+  console.log(new TextDecoder().decode(stderr));
+
   if (code === 0) {
-    const commitMessage = await Deno.readTextFile(commitMessagePath);
+    const commitMessageRaw: string = await Deno.readTextFile(commitMessagePath);
+
+    let commitTitle: string;
+
+    const commitMessage: string = commitMessageRaw
+      .split("\n")
+      .slice(1)
+      .join("\n"); //remove the first line
+
+    if (commitMessageRaw.startsWith("{VERSION}")) {
+      //make the commit title the version number of the build
+      commitTitle = commitMessageRaw.split("\n")[0];
+    } else {
+      //make the commit title the commit message from the COMMIT_EDITMSG file
+      commitTitle = commitMessageRaw.split("\n")[0].substring(0, 72);
+      //GIT standard is 72 characters for the first title of commit message
+    }
 
     console.log("%cGIT: Committing Changes...", "color: blue");
 
@@ -433,7 +516,7 @@ if (config.git) {
       args: [
         "commit",
         "-m",
-        `"${config.increment_version}"`,
+        `"${pubspec.version.toString()}"`,
         "-m",
         `"${commitMessage}"`,
       ],
@@ -442,8 +525,9 @@ if (config.git) {
 
     if (config.verbose) {
       console.log(new TextDecoder().decode(stdout));
-      console.log(new TextDecoder().decode(stderr));
     }
+
+    console.log(new TextDecoder().decode(stderr));
 
     if (code === 0) {
       console.log("%cGIT: Pushing Changes to Remote...", "color: blue");
@@ -455,11 +539,13 @@ if (config.git) {
 
       if (config.verbose) {
         console.log(new TextDecoder().decode(stdout));
-        console.log(new TextDecoder().decode(stderr));
       }
+
+      console.log(new TextDecoder().decode(stderr));
 
       if (code === 0) {
         console.log("%c✅ Pushed the changes to the git remote", successStyle);
+        sendNotification("Flutter Fusion", "Completed Successfully!");
       }
     }
   }
