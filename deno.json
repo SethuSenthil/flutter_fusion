@@ -1,0 +1,20 @@
+{
+  "tasks": {
+    "dev": "deno run --allow-read --allow-env --allow-run --allow-write --allow-sys --allow-net main.ts",
+    "build": "deno run --allow-read --allow-write build.ts",
+    "check": "deno check main.ts build.ts",
+    "fmt": "deno fmt",
+    "lint": "deno lint",
+    "install": "deno install -g -f -n flutter-fusion --allow-read --allow-env --allow-run --allow-write --allow-sys --allow-net main.ts"
+  },
+  "fmt": {
+    "exclude": ["docs/", "media/"],
+    "proseWrap": "preserve"
+  },
+  "lint": {
+    "exclude": ["docs/", "media/"],
+    "rules": {
+      "exclude": ["no-import-prefix"]
+    }
+  }
+}

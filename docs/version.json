@@ -1,1 +1,1 @@
-{"version":"0.0.2","changelog":"some changesy"}
+{"version":"0.0.3","changelog":"Command output is now logged to flutter_fusion.log; modernized to Deno 2 / jsr std; modular refactor."}

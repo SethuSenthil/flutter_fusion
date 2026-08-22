@@ -1,0 +1,55 @@
+{
+  "version": "5",
+  "specifiers": {
+    "jsr:@std/cli@1.0.32": "1.0.32",
+    "jsr:@std/fs@1.0.24": "1.0.24",
+    "jsr:@std/internal@^1.0.14": "1.0.14",
+    "jsr:@std/path@1.1.6": "1.1.6",
+    "jsr:@std/path@^1.1.5": "1.1.6",
+    "jsr:@std/semver@1.0.8": "1.0.8",
+    "jsr:@std/yaml@1.2.0": "1.2.0",
+    "npm:yaml@2.3.1": "2.3.1"
+  },
+  "jsr": {
+    "@std/cli@1.0.32": {
+      "integrity": "188b3a100d6202d64e3f5bd3d799c7fa4f6d77f92cc65eb7f641c1fa0aa92a66"
+    },
+    "@std/fs@1.0.24": {
+      "integrity": "f3061b45b81673a2bece689da041df32d174be064c89eb6397fb5718d3fb7877",
+      "dependencies": [
+        "jsr:@std/internal",
+        "jsr:@std/path@^1.1.5"
+      ]
+    },
+    "@std/internal@1.0.14": {
+      "integrity": "291516b3d4c35024d6ffbc0a9df5bf4c64116e05b50012cf846710152d2ffdf7"
+    },
+    "@std/path@1.1.6": {
+      "integrity": "c68485c2a4dfbb5ae3cc74fae4e8c4e5d874cf8a8ed12927917235c758b46cbe",
+      "dependencies": [
+        "jsr:@std/internal"
+      ]
+    },
+    "@std/semver@1.0.8": {
+      "integrity": "dc830e8b8b6a380c895d53fbfd1258dc253704ca57bbe1629ac65fd7830179b7"
+    },
+    "@std/yaml@1.2.0": {
+      "integrity": "20beb41e4983ba3437dbefac62b14061ab058e8a187596f19d28ff9035f6e6cf"
+    }
+  },
+  "npm": {
+    "yaml@2.3.1": {
+      "integrity": "sha512-2eHWfjaoXgTBC2jNM1LRef62VQa0umtvRiDSk6HSzW7RvS5YtkabJrwYLLEKWBc8a5U2PTSCs+dJjUTJdlHsWQ=="
+    }
+  },
+  "redirects": {
+    "https://deno.land/std/fmt/colors.ts": "https://deno.land/std@0.224.0/fmt/colors.ts"
+  },
+  "remote": {
+    "https://deno.land/std@0.224.0/fmt/colors.ts": "508563c0659dd7198ba4bbf87e97f654af3c34eb56ba790260f252ad8012e1c5",
+    "https://deno.land/x/cli_spinners@v0.0.2/mod.ts": "0571728c3855547cb9cc2a608720d0b60b6e42a4ad5029156dddd7426227e2fa",
+    "https://deno.land/x/cli_spinners@v0.0.2/spinner.ts": "ce0bff04b15f84b1b0a1be981d0492a1122ab0e069bd7e64d9015fa4d43d43ac",
+    "https://deno.land/x/cli_spinners@v0.0.2/spinners.ts": "14f0423feb65235f0ae2ed2dbc4b8206e36c1d0043c508440f94ac0ee940263f",
+    "https://deno.land/x/cli_spinners@v0.0.2/util.ts": "b1c354a0bbdcf61aba4d29dedf0a5fdf021c9aaf5d838b16a199ca29cba862db"
+  }
+}

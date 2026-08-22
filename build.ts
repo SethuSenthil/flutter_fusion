@@ -1,26 +1,30 @@
-// deno run --allow-read --allow-write build.ts
+// Build/release step: mirror the CLI source into docs/ (served via GitHub
+// Pages at flutter-fusion.sethusenthil.com) and write version.json.
+//
+//   deno task build   # or: deno run --allow-read --allow-write build.ts
+//
+// The hosted main.ts imports its modules with relative paths (./lib/*), so
+// docs/ must contain a faithful copy of both main.ts and lib/ for the
+// URL-based `deno install` to resolve.
 
-// script to build and host the CLI
-import * as path from "https://deno.land/std@0.177.0/path/mod.ts";
+import * as path from "jsr:@std/path@1.1.6";
+import { copy } from "jsr:@std/fs@1.0.24";
+import { VERSION } from "./lib/meta.ts";
 
-const __dirname = new URL(".", import.meta.url).pathname;
+const root = path.dirname(path.fromFileUrl(import.meta.url));
+const docs = path.join(root, "docs");
 
-const pathToMain = path.join(__dirname, "main.ts");
-const buildFolder = path.join(__dirname, "docs");
-const pathToBuildMain = path.join(buildFolder, "main.ts");
-
-await Deno.copyFile(pathToMain, pathToBuildMain);
-
-//read main.ts
-const mainFile = await Deno.readTextFile(pathToMain);
-const version = mainFile.split('const _VERSION = "')[1].split('"')[0];
-console.log("version", version);
+await Deno.copyFile(path.join(root, "main.ts"), path.join(docs, "main.ts"));
+await copy(path.join(root, "lib"), path.join(docs, "lib"), { overwrite: true });
 
 const versionData = {
-  version: version,
-  changelog: "some changesy",
+  version: VERSION,
+  changelog:
+    "Command output is now logged to flutter_fusion.log; modernized to Deno 2 / jsr std; modular refactor.",
 };
+await Deno.writeTextFile(
+  path.join(docs, "version.json"),
+  JSON.stringify(versionData),
+);
 
-//write version.json
-const versionFile = path.join(buildFolder, "version.json");
-await Deno.writeTextFile(versionFile, JSON.stringify(versionData));
+console.log(`✅ Built docs for v${VERSION}`);

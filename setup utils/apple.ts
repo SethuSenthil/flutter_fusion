@@ -30,7 +30,7 @@ const newestFile = p8Files[0];
 // Move the newest file to the private_keys folder
 await move(
   `${downloadsFolder}/${newestFile.name}`,
-  `${privateKeysFolder}/${newestFile.name}`
+  `${privateKeysFolder}/${newestFile.name}`,
 );
 
 function extractIdFromAuthKey(authKey: string): string | null {
@@ -54,5 +54,5 @@ await Deno.writeTextFile(
 flutter_fusion:
   APP_STORE_CONNECT_API_KEY_ID: "${keyID}"
   API_KEY_ISSUER: "YOUR API KEY ISSUER FROM APP STORE CONNECT"
-`
+`,
 );
