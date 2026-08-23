@@ -1,1 +1,1 @@
-{"version":"0.0.3","changelog":"Command output is now logged to flutter_fusion.log; modernized to Deno 2 / jsr std; modular refactor."}
+{"version":"0.0.4","changelog":"Adds `spm up` / `spm outdated` to upgrade Swift Package Manager dependencies, with optional auto-run before builds."}

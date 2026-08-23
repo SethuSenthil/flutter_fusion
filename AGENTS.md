@@ -42,6 +42,7 @@ deno task install  # install the local checkout globally as `flutter-fusion`
 | `lib/logger.ts`     | `initLog` + `runCommand` — command execution and `flutter_fusion.log`.    |
 | `lib/versioning.ts` | pubspec version / build-number bumping.                                   |
 | `lib/ios.ts`        | iOS build → validate → upload.                                            |
+| `lib/spm.ts`        | `spm up` / `spm outdated` — Swift Package Manager dependency updates.     |
 | `lib/git.ts`        | Stage, commit (from `COMMIT_EDITMSG`), push.                              |
 | `lib/notify.ts`     | Desktop notifications (macOS).                                            |
 | `lib/util.ts`       | Console style strings + `getTimeDifference`.                              |
@@ -57,6 +58,23 @@ exception is `lib/update.ts`, which runs before the log is initialized).
 
 Note: `flutter_fusion.log` is written into the **user's** Flutter project, not
 this repo. Users should add it to their own project's `.gitignore`.
+
+### Subcommands
+
+`main.ts` reads positional args (`ctx.positionals`) before the build pipeline.
+`spm up` / `spm outdated` short-circuit the normal build and run
+`lib/spm.ts` instead. New subcommands should follow the same pattern: check
+`ctx.positionals[0]`, run, and `return` before the build steps.
+
+### SPM update strategy
+
+Xcode has no "upgrade SPM deps" CLI, so `lib/spm.ts` backs up `Package.resolved`
+to `.dart_tool/flutter_fusion/spm/`, deletes it, regenerates via
+`xcodebuild -resolvePackageDependencies`, and diffs. `spm up` keeps the new file
+(with the old kept as a restore point); `spm outdated` reverts to the original
+and only applies on a `y` confirmation. `autoSpmOnBuild` runs one of these before
+the build when `spm_update_on_build` / `spm_outdated_on_build` is set (both set →
+warn + `outdated`), and swallows errors so it never aborts a build.
 
 ## Hosting & release flow
 

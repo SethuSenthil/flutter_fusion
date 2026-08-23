@@ -20,7 +20,7 @@ await copy(path.join(root, "lib"), path.join(docs, "lib"), { overwrite: true });
 const versionData = {
   version: VERSION,
   changelog:
-    "Command output is now logged to flutter_fusion.log; modernized to Deno 2 / jsr std; modular refactor.",
+    "Adds `spm up` / `spm outdated` to upgrade Swift Package Manager dependencies, with optional auto-run before builds.",
 };
 await Deno.writeTextFile(
   path.join(docs, "version.json"),

@@ -15,6 +15,7 @@ import { initLog } from "./lib/logger.ts";
 import { applyVersioning } from "./lib/versioning.ts";
 import { buildIos } from "./lib/ios.ts";
 import { commitAndPush, ensureCommitMessageFile } from "./lib/git.ts";
+import { autoSpmOnBuild, runSpm } from "./lib/spm.ts";
 import { errorStyle } from "./lib/util.ts";
 
 const startTime = new Date();
@@ -31,6 +32,13 @@ async function run(): Promise<void> {
 
   if (ctx.config.verbose) console.log("🔬 Verbose mode enabled");
 
+  // `spm` subcommand short-circuits the build pipeline.
+  const [command, action] = ctx.positionals;
+  if (command === "spm") {
+    await runSpm(ctx, action);
+    return;
+  }
+
   // 4. Validate git + prepare COMMIT_EDITMSG early, so the user can edit their
   //    commit message while the build runs.
   let commitMessagePath: string | undefined;
@@ -41,7 +49,10 @@ async function run(): Promise<void> {
   // 5. Bump version / build number as configured.
   await applyVersioning(ctx);
 
-  // 6. Build targets.
+  // 6. Optionally refresh Swift packages before building (config-driven).
+  await autoSpmOnBuild(ctx);
+
+  // 7. Build targets.
   if (ctx.config.ios) {
     await buildIos(ctx, startTime);
   }
@@ -58,7 +69,7 @@ async function run(): Promise<void> {
     );
   }
 
-  // 7. Commit and push.
+  // 8. Commit and push.
   if (ctx.config.git && commitMessagePath) {
     await commitAndPush(ctx, commitMessagePath);
   }

@@ -38,6 +38,22 @@ Every command Flutter Fusion runs (`flutter build`, `xcrun altool`, `git`, …) 
 
 > Tip: add `flutter_fusion.log` to your project's `.gitignore` so it isn't committed.
 
+### Swift Package Manager (SPM) updates
+
+Xcode has no command to _upgrade_ your Swift Package dependencies — it only ever resolves to whatever is already pinned in `Package.resolved`. Flutter Fusion works around this by backing up `Package.resolved`, deleting it, and letting `xcodebuild -resolvePackageDependencies` regenerate it against the version ranges your packages declare (which re-resolves to the newest allowed versions), then diffing the result. The backup lives in `.dart_tool/flutter_fusion/spm/` inside your project, so nothing is ever lost.
+
+```bash
+flutter-fusion spm up        # upgrade in place and print each module old → new
+flutter-fusion spm outdated  # show available updates, then ask y/n before applying
+```
+
+- `spm up` upgrades immediately and prints every module that changed (from → to), plus any added/removed packages. Your previous `Package.resolved` is kept in the cache as a restore point.
+- `spm outdated` is non-destructive: it discovers the available updates, prints them, reverts your `Package.resolved` back to its original state, and then prompts you with `y/n`. Only if you answer yes does it switch to the upgraded versions.
+
+Both require macOS and a working Xcode/Flutter setup (they use `xcodebuild`). By default the workspace is auto-detected under `ios/` (then `macos/`); override it with `spm_workspace` / `spm_scheme` in your config if needed.
+
+You can also run either step automatically before every build via your pubspec (see the config below). The default is neither. If you enable both, Flutter Fusion warns you and runs `outdated` (the less destructive option).
+
 ## Setup
 
 ### Installation
@@ -97,6 +113,10 @@ flutter_fusion:
   web: false #enable build and upload for Web
   auto_increment_build: false #would recommend setting to TRUE. This will automatically increment your build number (can be overridden temporarily using CLI flag)
   git: false #would recommend setting this to TRUE if you use a git repo. This will automatically commit your code with the provided message and push to remote
+  spm_update_on_build: false #run `spm up` (upgrade Swift packages) automatically before each build
+  spm_outdated_on_build: false #run `spm outdated` (show + prompt) automatically before each build. If both spm_* options are true, `outdated` wins
+  #spm_workspace: "ios/Runner.xcworkspace" #optional: override the auto-detected .xcworkspace
+  #spm_scheme: "Runner" #optional: override the scheme passed to xcodebuild (defaults to Runner)
 ```
 
 - You can also add these values to your global pubspec located in ~/private_keys/pubspec.yaml file created earlier to use these settings across multiple Flutter projects

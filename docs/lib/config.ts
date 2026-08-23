@@ -22,11 +22,17 @@ export interface FusionConfig {
   auto_increment_build: boolean;
   increment_version: boolean;
   git: boolean;
+  spm_update_on_build: boolean;
+  spm_outdated_on_build: boolean;
+  spm_workspace?: string;
+  spm_scheme?: string;
 }
 
 export interface Context {
   projectRoot: string;
   pubspecPath: string;
+  /** Positional CLI arguments, e.g. ["spm", "up"]. */
+  positionals: string[];
   // deno-lint-ignore no-explicit-any
   pubspec: any;
   // deno-lint-ignore no-explicit-any
@@ -115,7 +121,22 @@ export async function loadContext(): Promise<Context> {
       ff.auto_increment_build ?? gff.auto_increment_build ?? false,
     increment_version: asBool(args["increment-version"]) ?? false,
     git: asBool(args.git) ?? ff.git ?? false,
+    spm_update_on_build: ff.spm_update_on_build ?? gff.spm_update_on_build ??
+      false,
+    spm_outdated_on_build: ff.spm_outdated_on_build ??
+      gff.spm_outdated_on_build ?? false,
+    spm_workspace: ff.spm_workspace ?? gff.spm_workspace,
+    spm_scheme: ff.spm_scheme ?? gff.spm_scheme,
   };
 
-  return { projectRoot, pubspecPath, pubspec, globalPubSpec, config };
+  const positionals = args._.map(String);
+
+  return {
+    projectRoot,
+    pubspecPath,
+    positionals,
+    pubspec,
+    globalPubSpec,
+    config,
+  };
 }
