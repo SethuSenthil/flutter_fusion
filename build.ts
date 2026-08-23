@@ -20,7 +20,7 @@ await copy(path.join(root, "lib"), path.join(docs, "lib"), { overwrite: true });
 const versionData = {
   version: VERSION,
   changelog:
-    "Adds `spm up` / `spm outdated` to upgrade Swift Package Manager dependencies, with optional auto-run before builds.",
+    "Fixes the self-update mechanism: reloads the module cache so upgrades actually install the new version, and exits after upgrading so the fresh version is used.",
 };
 await Deno.writeTextFile(
   path.join(docs, "version.json"),

@@ -1,1 +1,1 @@
-{"version":"0.0.4","changelog":"Adds `spm up` / `spm outdated` to upgrade Swift Package Manager dependencies, with optional auto-run before builds."}
+{"version":"0.0.5","changelog":"Fixes the self-update mechanism: reloads the module cache so upgrades actually install the new version, and exits after upgrading so the fresh version is used."}

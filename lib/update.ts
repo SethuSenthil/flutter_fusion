@@ -13,6 +13,10 @@ const INSTALL_ARGS = [
   "install",
   "-g",
   "-f",
+  // Bypass Deno's module cache for the hosted source, otherwise `install -f`
+  // just re-creates the shim over the stale cached modules and the "upgrade"
+  // reinstalls the same old version.
+  `--reload=${new URL(INSTALL_URL).origin}`,
   "-n",
   "flutter-fusion",
   "--allow-read",
@@ -42,7 +46,15 @@ export async function checkForUpdates(): Promise<void> {
     const { code } = await new Deno.Command("deno", { args: INSTALL_ARGS })
       .output();
     if (code === 0) {
-      console.log("🎉 Upgraded to latest version!");
+      // The new binary is installed to disk, but this process is still running
+      // the OLD code in memory. Exit now so the freshly installed version is
+      // picked up when the user re-runs — otherwise the build below would run
+      // with the outdated code.
+      console.log(
+        "%c🎉 Upgraded to latest version! Please re-run your command to use it.",
+        "color: green",
+      );
+      Deno.exit(0);
     } else {
       console.log(
         "%cUpgrade failed. Please run the install command from the README manually.",
