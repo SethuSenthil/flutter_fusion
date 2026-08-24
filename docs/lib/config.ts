@@ -22,6 +22,14 @@ export interface FusionConfig {
   auto_increment_build: boolean;
   increment_version: boolean;
   git: boolean;
+  /** Whether to run `flutter test` before building. Defaults to true. */
+  run_tests: boolean;
+  /**
+   * True when `run_tests` was set explicitly (pubspec, global pubspec, or the
+   * `--tests` flag) rather than falling back to the default. When explicit,
+   * a project with no tests is treated as an error instead of quietly skipped.
+   */
+  run_tests_explicit: boolean;
   spm_update_on_build: boolean;
   spm_outdated_on_build: boolean;
   spm_workspace?: string;
@@ -108,6 +116,11 @@ export async function loadContext(): Promise<Context> {
   const ff = pubspec?.flutter_fusion ?? {};
   const gff = globalPubSpec?.flutter_fusion ?? {};
 
+  // Tri-state: `--tests` flag > project pubspec > global pubspec. `undefined`
+  // means the user never set it, so we fall back to the default (run tests if
+  // they exist) without treating a missing test/ folder as an error.
+  const rawRunTests = asBool(args.tests) ?? ff.run_tests ?? gff.run_tests;
+
   const config: FusionConfig = {
     verbose: ff.verbose ?? gff.verbose ?? false,
     build_flags: ff.build_flags ?? [],
@@ -121,6 +134,8 @@ export async function loadContext(): Promise<Context> {
       ff.auto_increment_build ?? gff.auto_increment_build ?? false,
     increment_version: asBool(args["increment-version"]) ?? false,
     git: asBool(args.git) ?? ff.git ?? false,
+    run_tests: rawRunTests ?? true,
+    run_tests_explicit: rawRunTests !== undefined,
     spm_update_on_build: ff.spm_update_on_build ?? gff.spm_update_on_build ??
       false,
     spm_outdated_on_build: ff.spm_outdated_on_build ??

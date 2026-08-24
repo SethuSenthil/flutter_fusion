@@ -63,6 +63,14 @@ export interface RunOptions {
   label?: string;
   /** Working directory for the spawned process. */
   cwd?: string;
+  /**
+   * Inherit the child's stdio so it streams live to the terminal. Use this for
+   * commands with their own progress UI (e.g. `flutter test`). Because the
+   * output goes straight to the terminal it is **not** captured, so `stdout`
+   * and `stderr` in the result are empty and the log records only the command
+   * and its exit code.
+   */
+  stream?: boolean;
 }
 
 /**
@@ -75,7 +83,29 @@ export async function runCommand(
   args: string[],
   opts: RunOptions = {},
 ): Promise<CommandResult> {
-  const { verbose = false, label, cwd } = opts;
+  const { verbose = false, label, cwd, stream = false } = opts;
+
+  // Streamed mode: inherit stdio so the child renders its own live progress
+  // (e.g. flutter test). Output isn't captured here, so we log the invocation
+  // and exit code only.
+  if (stream) {
+    const child = new Deno.Command(cmd, {
+      args,
+      cwd,
+      stdout: "inherit",
+      stderr: "inherit",
+    }).spawn();
+    const { code } = await child.status;
+
+    const block = `[${timestamp()}]${label ? ` ${label}` : ""}\n` +
+      `$ ${cmd} ${args.join(" ")}\n` +
+      `exit code: ${code}\n` +
+      `--- output streamed to terminal (not captured) ---\n` +
+      `${SEPARATOR}\n\n`;
+    await appendToLog(block);
+
+    return { code, success: code === 0, stdout: "", stderr: "" };
+  }
 
   const command = new Deno.Command(cmd, { args, cwd });
   const { code, stdout, stderr } = await command.output();

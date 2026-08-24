@@ -20,7 +20,7 @@ await copy(path.join(root, "lib"), path.join(docs, "lib"), { overwrite: true });
 const versionData = {
   version: VERSION,
   changelog:
-    "Fixes the self-update mechanism: reloads the module cache so upgrades actually install the new version, and exits after upgrading so the fresh version is used.",
+    "Adds an optional `flutter test` gate that runs before the build (config-driven via `run_tests`, or the `--tests` flag). Tests stream live; a failing suite stops the build with exit code 1.",
 };
 await Deno.writeTextFile(
   path.join(docs, "version.json"),

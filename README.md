@@ -29,6 +29,7 @@ Optional flags:
 - `--git=true|false`: This overrides the default setting in your pubspec to enable or disable committing and pushing to git.
 - `--increment-build=true|false`: This overrides the default setting in your pubspec to automatically increment your build number (ex: from 1.0.0+1 --> 1.0.0+2).
 - `--increment-version=true`: Increment a whole minor version (ex: from 1.0.0+3 --> 1.0.1+0).
+- `--tests=true|false`: This overrides the default setting in your pubspec to enable or disable running `flutter test` before the build.
 
 This command alone will automatically build your iOS (Android & Web coming soon) app a proper versioning increment, validate the archives, upload the archives, then auto commit your changes to source control.
 
@@ -37,6 +38,18 @@ This command alone will automatically build your iOS (Android & Web coming soon)
 Every command Flutter Fusion runs (`flutter build`, `xcrun altool`, `git`, …) is captured — including full stdout/stderr and exit codes — to a `flutter_fusion.log` file in your Flutter project's root directory. This file is recreated fresh on each run, so it always reflects your most recent build. If a build fails, check it there for the full details.
 
 > Tip: add `flutter_fusion.log` to your project's `.gitignore` so it isn't committed.
+
+### Tests
+
+Before building, Flutter Fusion runs your test suite with `flutter test` and streams its live progress output straight to your terminal. If every test passes, the build continues; if any test fails, the run stops with exit code `1` so a broken build never ships.
+
+The behavior is controlled by `run_tests` in your pubspec (or the `--tests` flag):
+
+- **`run_tests` unset (the default):** tests run if your project has any (`test/**/*_test.dart`). If there are none, the step is quietly skipped.
+- **`run_tests: true`:** tests are required. If no tests exist, the run exits with an error telling you to add tests or disable this setting.
+- **`run_tests: false`:** tests are never run.
+
+If tests fail (or are required but missing), the error message reminds you that you can turn test runs off with `run_tests: false` under `flutter_fusion` in your `pubspec.yaml`.
 
 ### Swift Package Manager (SPM) updates
 
@@ -113,6 +126,7 @@ flutter_fusion:
   web: false #enable build and upload for Web
   auto_increment_build: false #would recommend setting to TRUE. This will automatically increment your build number (can be overridden temporarily using CLI flag)
   git: false #would recommend setting this to TRUE if you use a git repo. This will automatically commit your code with the provided message and push to remote
+  #run_tests: true #run `flutter test` before building. Defaults to true when tests exist; set to false to skip. If set to true but no tests exist, the build errors out
   spm_update_on_build: false #run `spm up` (upgrade Swift packages) automatically before each build
   spm_outdated_on_build: false #run `spm outdated` (show + prompt) automatically before each build. If both spm_* options are true, `outdated` wins
   #spm_workspace: "ios/Runner.xcworkspace" #optional: override the auto-detected .xcworkspace

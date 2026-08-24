@@ -41,6 +41,7 @@ deno task install  # install the local checkout globally as `flutter-fusion`
 | `lib/config.ts`     | Project-root detection + merge pubspec/global-pubspec/CLI into `Context`. |
 | `lib/logger.ts`     | `initLog` + `runCommand` — command execution and `flutter_fusion.log`.    |
 | `lib/versioning.ts` | pubspec version / build-number bumping.                                   |
+| `lib/tests.ts`      | `flutter test` gate — streamed, run before build (config-driven).         |
 | `lib/ios.ts`        | iOS build → validate → upload.                                            |
 | `lib/spm.ts`        | `spm up` / `spm outdated` — Swift Package Manager dependency updates.     |
 | `lib/git.ts`        | Stage, commit (from `COMMIT_EDITMSG`), push.                              |
