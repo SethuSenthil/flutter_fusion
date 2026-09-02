@@ -11,6 +11,11 @@ const SEPARATOR = "-".repeat(60);
 
 let logPath: string | null = null;
 
+// The resolved Flutter project root. Every command runs here by default so
+// invoking the CLI from a subfolder (e.g. `ios/`) still operates on the project
+// root — matching where `config.ts` resolves the project and writes the log.
+let defaultCwd: string | undefined;
+
 function timestamp(): string {
   return new Date().toISOString();
 }
@@ -18,11 +23,14 @@ function timestamp(): string {
 /**
  * Create (truncating any existing file) `flutter_fusion.log` in the project
  * root and write a run header. Must be called once, before any `runCommand`.
+ * Also records the project root as the default working directory for every
+ * subsequent command.
  */
 export async function initLog(
   projectRoot: string,
   version: string,
 ): Promise<void> {
+  defaultCwd = projectRoot;
   logPath = path.join(projectRoot, "flutter_fusion.log");
   const header = `Flutter Fusion v${version}\n` +
     `Run started: ${timestamp()}\n` +
@@ -61,7 +69,11 @@ export interface RunOptions {
   verbose?: boolean;
   /** Friendly label recorded in the log alongside the raw command. */
   label?: string;
-  /** Working directory for the spawned process. */
+  /**
+   * Working directory for the spawned process. Defaults to the project root
+   * recorded by `initLog`, so commands behave the same whether the CLI is run
+   * from the project root or a subfolder.
+   */
   cwd?: string;
   /**
    * Inherit the child's stdio so it streams live to the terminal. Use this for
@@ -83,7 +95,7 @@ export async function runCommand(
   args: string[],
   opts: RunOptions = {},
 ): Promise<CommandResult> {
-  const { verbose = false, label, cwd, stream = false } = opts;
+  const { verbose = false, label, cwd = defaultCwd, stream = false } = opts;
 
   // Streamed mode: inherit stdio so the child renders its own live progress
   // (e.g. flutter test). Output isn't captured here, so we log the invocation

@@ -30,6 +30,8 @@ Optional flags:
 - `--increment-build=true|false`: This overrides the default setting in your pubspec to automatically increment your build number (ex: from 1.0.0+1 --> 1.0.0+2).
 - `--increment-version=true`: Increment a whole minor version (ex: from 1.0.0+3 --> 1.0.1+0).
 - `--tests=true|false`: This overrides the default setting in your pubspec to enable or disable running `flutter test` before the build.
+- `--pub-upgrade=true|false`: This overrides the default setting in your pubspec to enable or disable running `flutter pub upgrade` before the build.
+- `--keep-awake=true|false`: This overrides the default setting in your pubspec to keep your Mac awake for the duration of the run (macOS only).
 
 This command alone will automatically build your iOS (Android & Web coming soon) app a proper versioning increment, validate the archives, upload the archives, then auto commit your changes to source control.
 
@@ -38,6 +40,16 @@ This command alone will automatically build your iOS (Android & Web coming soon)
 Every command Flutter Fusion runs (`flutter build`, `xcrun altool`, `git`, …) is captured — including full stdout/stderr and exit codes — to a `flutter_fusion.log` file in your Flutter project's root directory. This file is recreated fresh on each run, so it always reflects your most recent build. If a build fails, check it there for the full details.
 
 > Tip: add `flutter_fusion.log` to your project's `.gitignore` so it isn't committed.
+
+### Package upgrades
+
+Before building (and before the test run), Flutter Fusion runs `flutter pub upgrade` so your build resolves against the freshest package versions allowed by your `pubspec.yaml`. The upgrade output — including which packages changed — is shown and captured in `flutter_fusion.log`. This is on by default; disable it with `pub_upgrade: false` (or `--pub-upgrade=false`).
+
+### Keeping your Mac awake
+
+Long builds and uploads can outlast your Mac's idle-sleep timer. By default, Flutter Fusion keeps your Mac awake (via macOS `caffeinate`) for the whole run and lets it sleep normally again once it finishes — including if the build fails or is interrupted.
+
+If your Mac is already being kept awake by you or another app, Flutter Fusion detects that and leaves it untouched, so it never changes a sleep setting it didn't create. This feature is macOS-only for now (a no-op elsewhere) and is on by default; disable it with `keep_awake: false` (or `--keep-awake=false`).
 
 ### Tests
 
@@ -127,6 +139,8 @@ flutter_fusion:
   auto_increment_build: false #would recommend setting to TRUE. This will automatically increment your build number (can be overridden temporarily using CLI flag)
   git: false #would recommend setting this to TRUE if you use a git repo. This will automatically commit your code with the provided message and push to remote
   #run_tests: true #run `flutter test` before building. Defaults to true when tests exist; set to false to skip. If set to true but no tests exist, the build errors out
+  #pub_upgrade: true #run `flutter pub upgrade` before tests/build to refresh package versions. Defaults to true
+  #keep_awake: true #keep your Mac awake (via caffeinate) until the run finishes. Defaults to true. macOS only for now; if your Mac is already kept awake, it's left untouched
   spm_update_on_build: false #run `spm up` (upgrade Swift packages) automatically before each build
   spm_outdated_on_build: false #run `spm outdated` (show + prompt) automatically before each build. If both spm_* options are true, `outdated` wins
   #spm_workspace: "ios/Runner.xcworkspace" #optional: override the auto-detected .xcworkspace

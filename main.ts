@@ -17,6 +17,8 @@ import { buildIos } from "./lib/ios.ts";
 import { commitAndPush, ensureCommitMessageFile } from "./lib/git.ts";
 import { autoSpmOnBuild, runSpm } from "./lib/spm.ts";
 import { runTests } from "./lib/tests.ts";
+import { runPubUpgrade } from "./lib/pub.ts";
+import { keepAwake } from "./lib/awake.ts";
 import { errorStyle } from "./lib/util.ts";
 
 const startTime = new Date();
@@ -40,25 +42,32 @@ async function run(): Promise<void> {
     return;
   }
 
-  // 4. Run the test suite first; a failure aborts before anything is mutated.
+  // 4. Keep the machine awake for the rest of the run (macOS only).
+  await keepAwake(ctx);
+
+  // 5. Upgrade Flutter packages before tests/spm so everything downstream uses
+  //    the freshest allowed versions.
+  await runPubUpgrade(ctx);
+
+  // 6. Run the test suite; a failure aborts before anything is mutated.
   if (ctx.config.run_tests) {
     await runTests(ctx);
   }
 
-  // 5. Validate git + prepare COMMIT_EDITMSG early, so the user can edit their
+  // 7. Validate git + prepare COMMIT_EDITMSG early, so the user can edit their
   //    commit message while the build runs.
   let commitMessagePath: string | undefined;
   if (ctx.config.git) {
     commitMessagePath = await ensureCommitMessageFile(ctx);
   }
 
-  // 6. Bump version / build number as configured.
+  // 8. Bump version / build number as configured.
   await applyVersioning(ctx);
 
-  // 7. Optionally refresh Swift packages before building (config-driven).
+  // 9. Optionally refresh Swift packages before building (config-driven).
   await autoSpmOnBuild(ctx);
 
-  // 8. Build targets.
+  // 10. Build targets.
   if (ctx.config.ios) {
     await buildIos(ctx, startTime);
   }
@@ -75,7 +84,7 @@ async function run(): Promise<void> {
     );
   }
 
-  // 9. Commit and push.
+  // 11. Commit and push.
   if (ctx.config.git && commitMessagePath) {
     await commitAndPush(ctx, commitMessagePath);
   }

@@ -41,6 +41,8 @@ deno task install  # install the local checkout globally as `flutter-fusion`
 | `lib/config.ts`     | Project-root detection + merge pubspec/global-pubspec/CLI into `Context`. |
 | `lib/logger.ts`     | `initLog` + `runCommand` — command execution and `flutter_fusion.log`.    |
 | `lib/versioning.ts` | pubspec version / build-number bumping.                                   |
+| `lib/pub.ts`        | `flutter pub upgrade` — refresh packages before tests/build.              |
+| `lib/awake.ts`      | Keep the Mac awake (`caffeinate`) for the run (macOS, config-driven).     |
 | `lib/tests.ts`      | `flutter test` gate — streamed, run before build (config-driven).         |
 | `lib/ios.ts`        | iOS build → validate → upload.                                            |
 | `lib/spm.ts`        | `spm up` / `spm outdated` — Swift Package Manager dependency updates.     |
@@ -54,8 +56,10 @@ Every external command (`flutter`, `xcrun`, `git`, `osascript`) must go through
 `runCommand` in `lib/logger.ts`. It captures stdout/stderr/exit-code to
 `<projectRoot>/flutter_fusion.log`, which is **recreated fresh on every run** by
 `initLog`. If you add a new external command, route it through `runCommand` so it
-is logged — do not call `new Deno.Command(...).output()` directly (the one
-exception is `lib/update.ts`, which runs before the log is initialized).
+is logged — do not call `new Deno.Command(...).output()` directly. Two
+deliberate exceptions: `lib/update.ts` (runs before the log is initialized) and
+`lib/awake.ts` (spawns a long-lived `caffeinate` bound to our PID, which can't
+be `await`ed to completion like `runCommand` does).
 
 Note: `flutter_fusion.log` is written into the **user's** Flutter project, not
 this repo. Users should add it to their own project's `.gitignore`.

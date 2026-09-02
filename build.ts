@@ -20,7 +20,7 @@ await copy(path.join(root, "lib"), path.join(docs, "lib"), { overwrite: true });
 const versionData = {
   version: VERSION,
   changelog:
-    "Adds an optional `flutter test` gate that runs before the build (config-driven via `run_tests`, or the `--tests` flag). Tests stream live; a failing suite stops the build with exit code 1.",
+    "Adds `flutter pub upgrade` before the build and a macOS keep-awake (caffeinate) that leaves an already-awake Mac untouched (both on by default). Fixes commands so they run from the project root even when invoked from a subfolder.",
 };
 await Deno.writeTextFile(
   path.join(docs, "version.json"),

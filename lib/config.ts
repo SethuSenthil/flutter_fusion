@@ -30,6 +30,13 @@ export interface FusionConfig {
    * a project with no tests is treated as an error instead of quietly skipped.
    */
   run_tests_explicit: boolean;
+  /** Run `flutter pub upgrade` before the build. Defaults to true. */
+  pub_upgrade: boolean;
+  /**
+   * Keep the machine awake (macOS `caffeinate`) for the duration of the build.
+   * Defaults to true. No-op on non-macOS platforms for now.
+   */
+  keep_awake: boolean;
   spm_update_on_build: boolean;
   spm_outdated_on_build: boolean;
   spm_workspace?: string;
@@ -136,6 +143,10 @@ export async function loadContext(): Promise<Context> {
     git: asBool(args.git) ?? ff.git ?? false,
     run_tests: rawRunTests ?? true,
     run_tests_explicit: rawRunTests !== undefined,
+    pub_upgrade: asBool(args["pub-upgrade"]) ?? ff.pub_upgrade ??
+      gff.pub_upgrade ?? true,
+    keep_awake: asBool(args["keep-awake"]) ?? ff.keep_awake ??
+      gff.keep_awake ?? true,
     spm_update_on_build: ff.spm_update_on_build ?? gff.spm_update_on_build ??
       false,
     spm_outdated_on_build: ff.spm_outdated_on_build ??
